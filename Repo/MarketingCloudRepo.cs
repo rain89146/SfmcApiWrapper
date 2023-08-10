@@ -71,12 +71,8 @@ namespace SalesforceMarketingCloudIntegration
         /// <exception cref="UnableToProcessDataExtensionRequest"></exception>
         public async Task<DataExtensionSuccessResponse> InsertRowIntoDataExtensionAsync<ParamType>(string DataExtensionKeyId, ParamType rows)
 		{
-			//	access token validation
-			if (string.IsNullOrWhiteSpace(this._accessToken)) throw new MissingAccessTokenException();
-
             //	add bearer token to header
-            this._httpClient.DefaultRequestHeaders.Remove("Authorization");
-            this._httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {this._accessToken}");
+            this.SetAuthoriziationHeader(this._accessToken);
 
             //	compose payload string
             string json = JsonConvert.SerializeObject(
@@ -125,12 +121,8 @@ namespace SalesforceMarketingCloudIntegration
         /// <exception cref="UnableToProcessDataExtensionRequest"></exception>
         public async Task<DataExtensionSuccessResponse> UpsertRowIntoDataExtensionAsync<ParamType>(string DataExtensionKeyId, ParamType rows)
 		{
-            //	access token validation
-            if (string.IsNullOrWhiteSpace(this._accessToken)) throw new MissingAccessTokenException();
-
             //  add bearer token to header
-            this._httpClient.DefaultRequestHeaders.Remove("Authorization");
-            this._httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {this._accessToken}");
+            this.SetAuthoriziationHeader(this._accessToken);
 
             //	compose payload string
             string json = JsonConvert.SerializeObject(
@@ -176,12 +168,8 @@ namespace SalesforceMarketingCloudIntegration
         /// <exception cref="HttpsFailedException"></exception>
         public async Task<RetrieveRequestStatusResponse> RetrieveStatusOfRequest(string requestId)
         {
-            //	access token validation
-            if (string.IsNullOrWhiteSpace(this._accessToken)) throw new MissingAccessTokenException();
-
             //	add bearer token to header
-            this._httpClient.DefaultRequestHeaders.Remove("Authorization");
-            this._httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {this._accessToken}");
+            this.SetAuthoriziationHeader(this._accessToken);
 
             //	build request url
             Uri requestUrl = new($"{this._restUrl}data/v1/async/{requestId}/status");
@@ -208,12 +196,23 @@ namespace SalesforceMarketingCloudIntegration
             return responseObject;
         }
 
+        //  set authorization header
+        private void SetAuthoriziationHeader(string? accessToken)
+        {
+            //	access token validation
+            if (string.IsNullOrWhiteSpace(accessToken)) throw new MissingAccessTokenException();
+
+            //	add bearer token to header
+            this._httpClient.DefaultRequestHeaders.Remove("Authorization");
+            this._httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
+        }
+
         /**
          * When it's unauthorized, try to get access token again
          * then assign the token, 
          * then execute the call again
          */
-        private async Task UnauthorizeResponse(Action callbackFunction)
+        private async Task UnauthorizeResponse(Func<Task> callbackFunction)
         {
             //  get the access token
             var tokenObj = await this.GetAccessToken();
@@ -222,7 +221,7 @@ namespace SalesforceMarketingCloudIntegration
             TokenBroker(tokenObj.access_token, tokenObj.rest_instance_url);
 
             //  return
-            callbackFunction();
+            await callbackFunction();
         }
 
         //  Data extension error handling

@@ -1,0 +1,16 @@
+/Users/ryanye/Projects/LearnCSharp/SalesforceMarketingCloudIntegration/bin/Debug/net6.0/SalesforceMarketingCloudIntegration.dll.config
+/Users/ryanye/Projects/LearnCSharp/SalesforceMarketingCloudIntegration/bin/Debug/net6.0/SalesforceMarketingCloudIntegration.deps.json
+/Users/ryanye/Projects/LearnCSharp/SalesforceMarketingCloudIntegration/bin/Debug/net6.0/SalesforceMarketingCloudIntegration.dll
+/Users/ryanye/Projects/LearnCSharp/SalesforceMarketingCloudIntegration/bin/Debug/net6.0/SalesforceMarketingCloudIntegration.pdb
+/Users/ryanye/Projects/LearnCSharp/SalesforceMarketingCloudIntegration/bin/Debug/net6.0/HelperBox.dll
+/Users/ryanye/Projects/LearnCSharp/SalesforceMarketingCloudIntegration/bin/Debug/net6.0/HelperBox.pdb
+/Users/ryanye/Projects/LearnCSharp/SalesforceMarketingCloudIntegration/obj/Debug/net6.0/SalesforceMarketingCloudIntegration.csproj.AssemblyReference.cache
+/Users/ryanye/Projects/LearnCSharp/SalesforceMarketingCloudIntegration/obj/Debug/net6.0/SalesforceMarketingCloudIntegration.GeneratedMSBuildEditorConfig.editorconfig
+/Users/ryanye/Projects/LearnCSharp/SalesforceMarketingCloudIntegration/obj/Debug/net6.0/SalesforceMarketingCloudIntegration.AssemblyInfoInputs.cache
+/Users/ryanye/Projects/LearnCSharp/SalesforceMarketingCloudIntegration/obj/Debug/net6.0/SalesforceMarketingCloudIntegration.AssemblyInfo.cs
+/Users/ryanye/Projects/LearnCSharp/SalesforceMarketingCloudIntegration/obj/Debug/net6.0/SalesforceMarketingCloudIntegration.csproj.CoreCompileInputs.cache
+/Users/ryanye/Projects/LearnCSharp/SalesforceMarketingCloudIntegration/obj/Debug/net6.0/SalesforceMarketingCloudIntegration.csproj.CopyComplete
+/Users/ryanye/Projects/LearnCSharp/SalesforceMarketingCloudIntegration/obj/Debug/net6.0/SalesforceMarketingCloudIntegration.dll
+/Users/ryanye/Projects/LearnCSharp/SalesforceMarketingCloudIntegration/obj/Debug/net6.0/refint/SalesforceMarketingCloudIntegration.dll
+/Users/ryanye/Projects/LearnCSharp/SalesforceMarketingCloudIntegration/obj/Debug/net6.0/SalesforceMarketingCloudIntegration.pdb
+/Users/ryanye/Projects/LearnCSharp/SalesforceMarketingCloudIntegration/obj/Debug/net6.0/ref/SalesforceMarketingCloudIntegration.dll

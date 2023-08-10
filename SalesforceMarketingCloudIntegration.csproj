@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HelperBox\HelperBox.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Repo\" />
+    <None Remove="Model\" />
+    <None Remove="Exception\" />
+    <None Remove="Controller\" />
+    <None Remove="DI\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Repo\" />
+    <Folder Include="Model\" />
+    <Folder Include="Exception\" />
+    <Folder Include="Controller\" />
+    <Folder Include="DI\" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+</Project>

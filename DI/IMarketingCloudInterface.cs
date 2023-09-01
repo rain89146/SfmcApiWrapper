@@ -3,11 +3,10 @@ using SalesforceMarketingCloudIntegration.Models;
 
 namespace SalesforceMarketingCloudIntegration.DI
 {
-	public interface IMarketingCloudControllerInterface
+	public interface IMarketingCloudInterface
 	{
-        //  DE async
-        Task<string> InsertRowAsync<ParamType>(string DataExtensionKeyId, ParamType rows);
-        Task<string> UpsertRowAsync<ParamType>(string DataExtensionKeyId, ParamType rows);
+        Task<string> InsertRowAsync<ParamType>(string DeId, ParamType rows);
+        Task<string> UpsertRowAsync<ParamType>(string DeId, ParamType rows);
         Task<bool> GetStatusOfAsyncRequest(string requestId);
         Task<List<ResultItem>> GetResultOfAsyncRequest(string requestId);
     }

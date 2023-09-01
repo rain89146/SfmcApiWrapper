@@ -1,11 +1,11 @@
 ﻿using System;
-namespace SalesforceMarketingCloudIntegration
+namespace SalesforceMarketingCloudIntegration.Exceptions
 {
-	public class UnableToInsertRowIntoDataExtension: Exception
+	public class UnableToProcessDataExtensionRequest : Exception
 	{
 		private readonly string _message;
 
-		public UnableToInsertRowIntoDataExtension(string message)
+		public UnableToProcessDataExtensionRequest(string message)
 		{
 			this._message = message;
 		}

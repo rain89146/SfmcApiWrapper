@@ -1,5 +1,5 @@
 ﻿using System;
-namespace SalesforceMarketingCloudIntegration
+namespace SalesforceMarketingCloudIntegration.Exceptions
 {
 	public class HttpsFailedException: Exception
 	{

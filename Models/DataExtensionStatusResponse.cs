@@ -1,5 +1,5 @@
 ﻿using System;
-namespace SalesforceMarketingCloudIntegration
+namespace SalesforceMarketingCloudIntegration.Models
 {
     public class RequestStatusObject
     {

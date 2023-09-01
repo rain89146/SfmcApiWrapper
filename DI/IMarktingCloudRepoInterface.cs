@@ -1,15 +1,13 @@
-﻿using System;
-using SalesforceMarketingCloudIntegration;
+﻿using SalesforceMarketingCloudIntegration.Models;
 
-namespace SalesforceMarketingCloudIntegration
+namespace SalesforceMarketingCloudIntegration.DI
 {
 	public interface IMarktingCloudRepoInterface
 	{
-        void TokenBroker(string _accessToken, string _restUrl);
-        Task<SalesforceMarketingCloudAccessTokenObject> GetAccessToken();
         Task<DataExtensionSuccessResponse> InsertRowIntoDataExtensionAsync<ParamType>(string DataExtensionKeyId, ParamType rows);
         Task<DataExtensionSuccessResponse> UpsertRowIntoDataExtensionAsync<ParamType>(string DataExtensionKeyId, ParamType rows);
         Task<RetrieveRequestStatusResponse> RetrieveStatusOfRequest(string requestId);
+        Task<ResultAsyncRequestResponse> RetrieveResultOfRequest(string requestId);
     }
 }
 

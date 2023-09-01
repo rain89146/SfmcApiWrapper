@@ -11,17 +11,19 @@
   </ItemGroup>
   <ItemGroup>
     <None Remove="Repo\" />
-    <None Remove="Model\" />
-    <None Remove="Exception\" />
     <None Remove="Controller\" />
     <None Remove="DI\" />
+    <None Remove="Helper\" />
+    <None Remove="Exceptions\" />
+    <None Remove="Models\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Repo\" />
-    <Folder Include="Model\" />
-    <Folder Include="Exception\" />
     <Folder Include="Controller\" />
     <Folder Include="DI\" />
+    <Folder Include="Helper\" />
+    <Folder Include="Exceptions\" />
+    <Folder Include="Models\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0" />

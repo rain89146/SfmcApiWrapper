@@ -1,6 +1,9 @@
 ﻿using System.Net;
 using System.Text;
 using Newtonsoft.Json;
+using SalesforceMarketingCloudIntegration.Exceptions;
+using SalesforceMarketingCloudIntegration.Models;
+using SalesforceMarketingCloudIntegration.DI;
 
 namespace SalesforceMarketingCloudIntegration
 {
@@ -19,8 +22,13 @@ namespace SalesforceMarketingCloudIntegration
 			this._credential = credential;
         }
 
-		//  Get access token
-		public async Task<SalesforceMarketingCloudAccessTokenObject> GetAccessToken()
+        /// <summary>
+        /// Get access token
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="HttpsFailedException"></exception>
+        /// <exception cref="UnableToRetrieveSalesforceMarketingCloudAccessToken"></exception>
+        private async Task<SalesforceMarketingCloudAccessTokenObject> GetAccessToken()
 		{
 			//
             string json = JsonConvert.SerializeObject(
@@ -38,26 +46,21 @@ namespace SalesforceMarketingCloudIntegration
             //
             using var response = await this._httpClient.PostAsync(requestUrl, httpContent).ConfigureAwait(false);
 
-			//	Http request failed
-			if (!response.IsSuccessStatusCode) throw new HttpsFailedException(response.ReasonPhrase, (int) response.StatusCode);
-
             //
             string responseContent = await response.Content.ReadAsStringAsync();
+
+            //	Http request failed
+            if (!response.IsSuccessStatusCode) HttpRequestFailedHandler(response);
 
             //
             if (string.IsNullOrEmpty(responseContent)) throw new UnableToRetrieveSalesforceMarketingCloudAccessToken();
 
-			//
-			return JsonConvert.DeserializeObject<SalesforceMarketingCloudAccessTokenObject>(responseContent);
+            //
+            var result = JsonConvert.DeserializeObject<SalesforceMarketingCloudAccessTokenObject>(responseContent);
+
+            //
+            return result ?? throw new UnableToRetrieveSalesforceMarketingCloudAccessToken();
 		}
-
-        //  assign access token to this
-        public void TokenBroker (string _accessToken, string _restUrl)
-        {
-            this._accessToken = _accessToken;
-            this._restUrl = _restUrl;
-        }
-
 
         /// <summary>
         /// Insert row into data extension
@@ -72,7 +75,7 @@ namespace SalesforceMarketingCloudIntegration
         public async Task<DataExtensionSuccessResponse> InsertRowIntoDataExtensionAsync<ParamType>(string DataExtensionKeyId, ParamType rows)
 		{
             //	add bearer token to header
-            this.SetAuthoriziationHeader(this._accessToken);
+            await SetAuthoriziationHeader();
 
             //	compose payload string
             string json = JsonConvert.SerializeObject(
@@ -89,23 +92,26 @@ namespace SalesforceMarketingCloudIntegration
             //	make request
             using var response = await this._httpClient.PostAsync(requestUrl, httpContent);
 
-            //  if it's unauthorized
-            if (response.StatusCode == HttpStatusCode.Unauthorized) await UnauthorizeResponse(async () => await InsertRowIntoDataExtensionAsync(DataExtensionKeyId, rows));
-
-            //	if it's salesforce error
-            if ((int) response.StatusCode == 400 ) await this.SalesforceDataExtensionErrorResponse(response);
-
-            //	Http request failed
-            if (!response.IsSuccessStatusCode) throw new HttpsFailedException(response.ReasonPhrase, (int)response.StatusCode);
-           
             //  get response string
             string responseContent = await response.Content.ReadAsStringAsync();
+
+            //  if it's unauthorized, get authorized and try again
+            if (response.StatusCode == HttpStatusCode.Unauthorized) await HttpRequestUnauthorizedHandler(async () => await InsertRowIntoDataExtensionAsync(DataExtensionKeyId, rows));
+
+            //	if it's salesforce error
+            if (response.StatusCode == HttpStatusCode.BadRequest) SalesforceDataExtensionErrorResponse(responseContent);
+
+            //	Http request failed
+            if (!response.IsSuccessStatusCode) HttpRequestFailedHandler(response);
 
             //  no response string
             if (string.IsNullOrEmpty(responseContent)) throw new UnableToProcessDataExtensionRequest("Missing response content");
 
+            //  parse response content
+            var parsedResult = JsonConvert.DeserializeObject<DataExtensionSuccessResponse>(responseContent);
+
             //	parse into object
-            return JsonConvert.DeserializeObject<DataExtensionSuccessResponse>(responseContent);
+            return parsedResult ?? throw new UnableToProcessDataExtensionRequest("Can't parse response content");
         }
 
 
@@ -122,7 +128,7 @@ namespace SalesforceMarketingCloudIntegration
         public async Task<DataExtensionSuccessResponse> UpsertRowIntoDataExtensionAsync<ParamType>(string DataExtensionKeyId, ParamType rows)
 		{
             //  add bearer token to header
-            this.SetAuthoriziationHeader(this._accessToken);
+            await SetAuthoriziationHeader();
 
             //	compose payload string
             string json = JsonConvert.SerializeObject(
@@ -139,25 +145,27 @@ namespace SalesforceMarketingCloudIntegration
             //	make request
             using var response = await this._httpClient.PutAsync(requestUrl, httpContent);
 
-            //  if it's unauthorized
-            if (response.StatusCode == HttpStatusCode.Unauthorized) await UnauthorizeResponse(async () => await UpsertRowIntoDataExtensionAsync(DataExtensionKeyId, rows));
-
-            //	if it's salesforce error
-            if ((int)response.StatusCode == 400) await this.SalesforceDataExtensionErrorResponse(response);
-
-            //	Http request failed
-            if (!response.IsSuccessStatusCode) throw new HttpsFailedException(response.ReasonPhrase, (int)response.StatusCode);
-
             //  get response string
             string responseContent = await response.Content.ReadAsStringAsync();
 
-            //
+            //  if it's unauthorized
+            if (response.StatusCode == HttpStatusCode.Unauthorized) await HttpRequestUnauthorizedHandler(async () => await UpsertRowIntoDataExtensionAsync(DataExtensionKeyId, rows));
+
+            //	if it's salesforce error
+            if (response.StatusCode == HttpStatusCode.BadRequest) SalesforceDataExtensionErrorResponse(responseContent);
+
+            //	Http request failed
+            if (!response.IsSuccessStatusCode) HttpRequestFailedHandler(response);
+
+            //  response content is null
             if (string.IsNullOrEmpty(responseContent)) throw new UnableToProcessDataExtensionRequest("Missing response content");
 
-            //	parse into object
-            return JsonConvert.DeserializeObject<DataExtensionSuccessResponse>(responseContent);
-        }
+            //  parse response content
+            var parsedResult = JsonConvert.DeserializeObject<DataExtensionSuccessResponse>(responseContent);
 
+            //	parse into object
+            return parsedResult ?? throw new UnableToProcessDataExtensionRequest("Can't parse response content");
+        }
 
         /// <summary>
         /// Retrieve status of a request
@@ -169,72 +177,128 @@ namespace SalesforceMarketingCloudIntegration
         public async Task<RetrieveRequestStatusResponse> RetrieveStatusOfRequest(string requestId)
         {
             //	add bearer token to header
-            this.SetAuthoriziationHeader(this._accessToken);
+            await SetAuthoriziationHeader();
 
             //	build request url
-            Uri requestUrl = new($"{this._restUrl}data/v1/async/{requestId}/status");
+            var requestUrl = new Uri($"{this._restUrl}data/v1/async/{requestId}/status");
 
             //	make request
             using HttpResponseMessage response = await this._httpClient.GetAsync(requestUrl);
 
-            //  when it's unauthorized
-            if (response.StatusCode == HttpStatusCode.Unauthorized) await UnauthorizeResponse(async () => await this.RetrieveStatusOfRequest(requestId));
-
-            //  when it's failed
-            if (!response.IsSuccessStatusCode) throw new HttpsFailedException(response.ReasonPhrase, (int)response.StatusCode);
-
             //
             string responseContent = await response.Content.ReadAsStringAsync();
+
+            //  when it's unauthorized
+            if (response.StatusCode == HttpStatusCode.Unauthorized) await HttpRequestUnauthorizedHandler(async () => await RetrieveStatusOfRequest(requestId));
+
+            //  when it's failed
+            if (!response.IsSuccessStatusCode) HttpRequestFailedHandler(response);
 
             //
             var responseObject = JsonConvert.DeserializeObject<RetrieveRequestStatusResponse>(responseContent);
 
             //  means the request failed
-            if (responseObject.status is null) await this.SalesforceDataExtensionErrorResponse(response);
+            if (responseObject!.status is null) SalesforceDataExtensionErrorResponse(responseContent);
 
             //
             return responseObject;
         }
 
-        //  set authorization header
-        private void SetAuthoriziationHeader(string? accessToken)
+        /// <summary>
+        /// Retrieve result of request
+        /// </summary>
+        /// <param name="requestId"></param>
+        /// <returns></returns>
+        /// <exception cref="HttpsFailedException"></exception>
+        /// <exception cref="UnableToProcessDataExtensionRequest"></exception>
+        public async Task<ResultAsyncRequestResponse> RetrieveResultOfRequest(string requestId)
+        {
+            //
+            await SetAuthoriziationHeader();
+
+            //
+            var requestUrl = new Uri($"{this._restUrl}data/v1/async/{requestId}/results");
+
+            //
+            using HttpResponseMessage response = await this._httpClient.GetAsync(requestUrl);
+
+            //
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            //  when it's unauthorized
+            if (response.StatusCode == HttpStatusCode.Unauthorized) await HttpRequestUnauthorizedHandler(async () => await this.RetrieveResultOfRequest(requestId));
+
+            //  when it's failed
+            if (!response.IsSuccessStatusCode) HttpRequestFailedHandler(response);
+
+            //
+            var responseObject = JsonConvert.DeserializeObject<ResultAsyncRequestResponse>(responseContent) ?? throw new UnableToProcessDataExtensionRequest("Response object is null");
+
+            //  request success
+            if (responseObject.items is not null && responseObject.items.Count > 0) return responseObject;
+
+            //  error presented
+            if (responseObject.resultMessages is null || responseObject.resultMessages.Count == 0) throw new UnableToProcessDataExtensionRequest("Result message empty");
+
+            //
+            var messages = new StringBuilder();
+
+            //
+            foreach(var messageObj in responseObject!.resultMessages) messages.Append($"Error {messageObj.resultCode}, message: {messageObj.message};");
+
+            //
+            throw new UnableToProcessDataExtensionRequest(messages.ToString());
+        }
+
+        /// <summary>
+        /// set authorization header
+        /// </summary>
+        /// <param name="accessToken"></param>
+        /// <exception cref="MissingAccessTokenException"></exception>
+        private async Task SetAuthoriziationHeader()
         {
             //	access token validation
-            if (string.IsNullOrWhiteSpace(accessToken)) throw new MissingAccessTokenException();
+            if (string.IsNullOrWhiteSpace(this._accessToken)) await Reauthorize();
+      
+            //  clear access token
+            this._httpClient.DefaultRequestHeaders.Remove("Authorization");
 
             //	add bearer token to header
-            this._httpClient.DefaultRequestHeaders.Remove("Authorization");
-            this._httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
+            this._httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {this._accessToken}");
         }
 
-        /**
-         * When it's unauthorized, try to get access token again
-         * then assign the token, 
-         * then execute the call again
-         */
-        private async Task UnauthorizeResponse(Func<Task> callbackFunction)
+        /// <summary>
+        /// When it's unauthorized, try to get access token again, then assign the token.
+        /// </summary>
+        /// <returns></returns>
+        private async Task Reauthorize()
         {
             //  get the access token
-            var tokenObj = await this.GetAccessToken();
+            var tokenObj = await GetAccessToken();
 
             //  reassign
-            TokenBroker(tokenObj.access_token, tokenObj.rest_instance_url);
-
-            //  return
-            await callbackFunction();
+            this._accessToken = tokenObj.access_token;
+            this._restUrl = tokenObj.rest_instance_url;
         }
 
-        //  Data extension error handling
-        private async Task SalesforceDataExtensionErrorResponse(HttpResponseMessage response)
+        /// <summary>
+        /// Data extension error handling
+        /// </summary>
+        /// <param name="responsString"></param>
+        /// <exception cref="UnableToProcessDataExtensionRequest"></exception>
+        private static void SalesforceDataExtensionErrorResponse(string responsString)
         {
-            //	error returns different structure
-            string errorResponsString = await response.Content.ReadAsStringAsync();
-
             //	
-            var errorObject = JsonConvert.DeserializeObject<DataExtensionErrorResponse>(errorResponsString);
+            var errorObject = JsonConvert.DeserializeObject<DataExtensionErrorResponse>(responsString) ?? throw new UnableToProcessDataExtensionRequest("Error object is null");
+
+            //
+            if (errorObject.resultMessages is null) throw new UnableToProcessDataExtensionRequest("Error result message is empty");
 
             //	more than 1 error object in the message
             List<ResultMessages> errorList = errorObject.resultMessages;
+
+            //  
+            if (errorList.Count != 0) throw new UnableToProcessDataExtensionRequest("");
 
             //	
             var message = new StringBuilder();
@@ -242,11 +306,39 @@ namespace SalesforceMarketingCloudIntegration
             //
             foreach (ResultMessages error in errorList) message.Append($"Error {error.resultCode}: {error.message};");
 
-            //
-            string errorMessage = (errorList.Count() == 0) ? "" : message.ToString();
+            //  
+            throw new UnableToProcessDataExtensionRequest(message.ToString());
+        }
 
-            //
-            throw new UnableToProcessDataExtensionRequest(errorMessage);
+        /// <summary>
+        /// When http request failed because of the status is unauthorized
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="response"></param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        private async Task HttpRequestUnauthorizedHandler<TaskType>(Func<Task<TaskType>> callback)
+        {
+            await Reauthorize();
+            await callback();
+        }
+
+        /// <summary>
+        /// When http request failed
+        /// </summary>
+        /// <param name="response"></param>
+        /// <exception cref="HttpsFailedException"></exception>
+        private static void HttpRequestFailedHandler(HttpResponseMessage response)
+        {
+            //  when it's failed
+            if (!response.IsSuccessStatusCode)
+            {
+                //
+                if (response is null || response.ReasonPhrase is null) throw new HttpsFailedException("Failed with no reason", 500);
+
+                //
+                throw new HttpsFailedException(response.ReasonPhrase, (int)response.StatusCode);
+            }
         }
     }
 }

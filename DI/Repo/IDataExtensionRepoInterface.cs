@@ -2,7 +2,7 @@
 
 namespace SalesforceMarketingCloudIntegration.DI
 {
-	public interface IMarktingCloudRepoInterface
+	public interface IDataExtensionRepoInterface
 	{
         Task<DataExtensionSuccessResponse> InsertRowIntoDataExtensionAsync<ParamType>(string DataExtensionKeyId, ParamType rows);
         Task<DataExtensionSuccessResponse> UpsertRowIntoDataExtensionAsync<ParamType>(string DataExtensionKeyId, ParamType rows);

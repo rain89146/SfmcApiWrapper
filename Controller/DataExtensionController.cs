@@ -2,24 +2,19 @@
 using SalesforceMarketingCloudIntegration.Models;
 using SalesforceMarketingCloudIntegration.Helper;
 using SalesforceMarketingCloudIntegration.DI;
-
-
 namespace SalesforceMarketingCloudIntegration
 {
-	public class MarketingCloudController: IMarketingCloudControllerInterface
+	public class DataExtensionController: IDataExtensionControllerInterface
     {
         //
-		private readonly IMarktingCloudRepoInterface _repo;
+		private readonly IDataExtensionRepoInterface _repo;
 
         //
         private readonly int maxRetries = 5;
         private readonly int retriesOffsetTimeMS = 500;
         
         //
-		public MarketingCloudController(IMarktingCloudRepoInterface repo)
-		{
-			this._repo = repo;
-		}
+		public DataExtensionController(IDataExtensionRepoInterface repo) => this._repo = repo;
 
         //
         public async Task<string> InsertRowAsync<ParamType>(string DataExtensionKeyId, ParamType rows)

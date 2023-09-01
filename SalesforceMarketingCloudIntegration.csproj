@@ -16,6 +16,8 @@
     <None Remove="Helper\" />
     <None Remove="Exceptions\" />
     <None Remove="Models\" />
+    <None Remove="DI\Repo\" />
+    <None Remove="DI\Controller\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Repo\" />
@@ -24,6 +26,8 @@
     <Folder Include="Helper\" />
     <Folder Include="Exceptions\" />
     <Folder Include="Models\" />
+    <Folder Include="DI\Repo\" />
+    <Folder Include="DI\Controller\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
